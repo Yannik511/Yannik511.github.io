@@ -4,59 +4,99 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Passwort zurücksetzen · Rankify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
     body {
       margin: 0; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
-      background: #0f0f13; color: #fff; padding: 24px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f13; color: #fff; padding: 24px; position: relative; overflow-x: hidden;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .card { width: 100%; max-width: 380px; text-align: center; }
-    .logo { font-size: 44px; margin-bottom: 12px; }
-    h1 { font-size: 24px; margin: 0 0 8px; font-weight: 700; }
-    p { font-size: 15px; line-height: 1.45; color: rgba(255,255,255,0.55); margin: 0 0 24px; }
+    /* Ambient glow wie im App-Login */
+    .glow {
+      position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 420px; height: 420px; pointer-events: none; z-index: 0;
+      background: radial-gradient(circle, rgba(255,126,66,0.18) 0%, transparent 65%);
+    }
+    .card { position: relative; z-index: 1; width: 100%; max-width: 380px; text-align: center; }
+    .logo {
+      width: 74px; height: 74px; border-radius: 20px; margin: 0 auto 18px;
+      display: block; box-shadow: 0 10px 34px rgba(234,144,83,0.45);
+    }
+    h1 { font-size: 25px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.3px; }
+    .sub { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.5); margin: 0 0 28px; }
     .group {
-      border-radius: 16px; overflow: hidden; text-align: left;
+      border-radius: 16px; overflow: hidden; text-align: left; margin-bottom: 4px;
       border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06);
+      transition: border-color .2s ease;
     }
+    .group:focus-within { border-color: rgba(255,126,66,0.55); }
     input {
       width: 100%; padding: 17px 18px; font-size: 16px; background: transparent;
       border: none; outline: none; color: #fff; font-family: inherit;
     }
+    input::placeholder { color: rgba(255,255,255,0.35); }
     .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 18px; }
     button {
       width: 100%; margin-top: 20px; padding: 17px; border-radius: 16px; border: none;
       background: linear-gradient(135deg, #FF9357, #B85C2C); color: #fff;
       font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer;
-      box-shadow: 0 4px 20px rgba(255,126,66,0.4);
+      box-shadow: 0 6px 22px rgba(255,126,66,0.42); transition: transform .12s ease, opacity .2s ease;
     }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .msg { border-radius: 12px; padding: 12px 16px; font-size: 14px; margin-top: 16px; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+    .msg { border-radius: 12px; padding: 12px 16px; font-size: 14px; margin-top: 16px; line-height: 1.4; }
     .err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
     .ok  { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25); color: #4ade80; }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 8px 26px rgba(34,197,94,0.4);
+    }
+    .foot { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.35); }
     .hidden { display: none; }
   </style>
 </head>
 <body>
+  <div class="glow"></div>
   <div class="card">
-    <div class="logo">🔑</div>
-    <h1 id="title">Neues Passwort setzen</h1>
-    <p id="subtitle">Wähle ein neues Passwort für dein Rankify-Konto.</p>
+    <svg class="logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Rankify">
+      <rect width="1024" height="1024" rx="240" fill="#EA9053"/>
+      <path fill="#242424" d="M320 220h280c146 0 236 80 236 190s-90 190-236 190H420v224H320V220zm100 100v180h172c70 0 114-36 114-90s-44-90-114-90H420zm70 220h168l196 304H694L490 540z"/>
+    </svg>
 
-    <form id="form">
-      <div class="group">
-        <input id="pw1" type="password" placeholder="Neues Passwort" autocomplete="new-password" minlength="6" required />
-        <div class="divider"></div>
-        <input id="pw2" type="password" placeholder="Passwort bestätigen" autocomplete="new-password" minlength="6" required />
-      </div>
-      <div id="error" class="msg err hidden"></div>
-      <button id="submit" type="submit">Passwort speichern</button>
-    </form>
-
-    <div id="success" class="hidden">
-      <div class="msg ok">Passwort geändert! Kehre zur Rankify-App zurück und melde dich mit deinem neuen Passwort an.</div>
+    <div id="view-form">
+      <h1 id="title">Neues Passwort setzen</h1>
+      <p class="sub" id="subtitle">Wähle ein neues Passwort für dein Rankify-Konto.</p>
+      <form id="form">
+        <div class="group">
+          <input id="pw1" type="password" placeholder="Neues Passwort" autocomplete="new-password" minlength="6" required />
+          <div class="divider"></div>
+          <input id="pw2" type="password" placeholder="Passwort bestätigen" autocomplete="new-password" minlength="6" required />
+        </div>
+        <div id="error" class="msg err hidden"></div>
+        <button id="submit" type="submit">Passwort speichern</button>
+      </form>
     </div>
+
+    <div id="view-invalid" class="hidden">
+      <h1 id="invalid-title">Link ungültig</h1>
+      <p class="sub" id="invalid-sub">Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordere in der Rankify-App einen neuen an.</p>
+    </div>
+
+    <div id="view-success" class="hidden">
+      <div class="success-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1>Passwort geändert</h1>
+      <p class="sub">Öffne die Rankify-App und melde dich mit deinem neuen Passwort an.</p>
+    </div>
+
+    <div class="foot">Rankify · Deine Foodspots im Ranking</div>
   </div>
 
   <script type="module">
@@ -70,45 +110,37 @@
     })
 
     const $ = (id) => document.getElementById(id)
-    const showError = (m) => { const e = $('error'); e.textContent = m; e.classList.remove('hidden') }
-    const hideError = () => $('error').classList.add('hidden')
+    const show = (id) => $(id).classList.remove('hidden')
+    const hide = (id) => $(id).classList.add('hidden')
+    const showError = (m) => { $('error').textContent = m; show('error') }
 
-    // Recovery-Token aus dem URL-Fragment (Implicit-Flow) lesen.
     const hash = new URLSearchParams(window.location.hash.slice(1))
     const accessToken = hash.get('access_token')
     const refreshToken = hash.get('refresh_token')
     const type = hash.get('type')
     const linkError = hash.get('error_description') || hash.get('error')
 
+    function invalid(sub) {
+      hide('view-form')
+      if (sub) $('invalid-sub').textContent = sub
+      show('view-invalid')
+    }
+
     async function init() {
-      if (linkError) {
-        $('title').textContent = 'Link ungültig'
-        $('subtitle').textContent = 'Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordere in der App einen neuen an.'
-        $('form').classList.add('hidden')
-        return
-      }
+      if (linkError) return invalid()
       if (type !== 'recovery' || !accessToken || !refreshToken) {
-        $('title').textContent = 'Kein gültiger Reset-Link'
-        $('subtitle').textContent = 'Öffne den Link aus der Passwort-Vergessen-Mail direkt auf diesem Gerät.'
-        $('form').classList.add('hidden')
-        return
+        return invalid('Öffne den Link aus der Passwort-vergessen-Mail direkt auf diesem Gerät.')
       }
       const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      if (error) {
-        $('title').textContent = 'Link abgelaufen'
-        $('subtitle').textContent = 'Bitte fordere in der App einen neuen Reset-Link an.'
-        $('form').classList.add('hidden')
-      }
+      if (error) return invalid('Bitte fordere in der Rankify-App einen neuen Reset-Link an.')
     }
 
     $('form').addEventListener('submit', async (e) => {
       e.preventDefault()
-      hideError()
-      const pw1 = $('pw1').value
-      const pw2 = $('pw2').value
+      hide('error')
+      const pw1 = $('pw1').value, pw2 = $('pw2').value
       if (pw1.length < 6) return showError('Das Passwort muss mindestens 6 Zeichen haben.')
       if (pw1 !== pw2) return showError('Die Passwörter stimmen nicht überein.')
-
       $('submit').disabled = true
       $('submit').textContent = 'Wird gespeichert...'
       const { error } = await supabase.auth.updateUser({ password: pw1 })
@@ -119,10 +151,8 @@
         return
       }
       await supabase.auth.signOut()
-      $('form').classList.add('hidden')
-      $('subtitle').classList.add('hidden')
-      $('title').textContent = 'Fertig'
-      $('success').classList.remove('hidden')
+      hide('view-form')
+      show('view-success')
     })
 
     init()
