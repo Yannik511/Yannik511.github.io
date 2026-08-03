@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Passwort zurücksetzen · Rankify</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      background: #0f0f13; color: #fff; padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .card { width: 100%; max-width: 380px; text-align: center; }
+    .logo { font-size: 44px; margin-bottom: 12px; }
+    h1 { font-size: 24px; margin: 0 0 8px; font-weight: 700; }
+    p { font-size: 15px; line-height: 1.45; color: rgba(255,255,255,0.55); margin: 0 0 24px; }
+    .group {
+      border-radius: 16px; overflow: hidden; text-align: left;
+      border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06);
+    }
+    input {
+      width: 100%; padding: 17px 18px; font-size: 16px; background: transparent;
+      border: none; outline: none; color: #fff; font-family: inherit;
+    }
+    .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 18px; }
+    button {
+      width: 100%; margin-top: 20px; padding: 17px; border-radius: 16px; border: none;
+      background: linear-gradient(135deg, #FF9357, #B85C2C); color: #fff;
+      font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255,126,66,0.4);
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .msg { border-radius: 12px; padding: 12px 16px; font-size: 14px; margin-top: 16px; }
+    .err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; }
+    .ok  { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25); color: #4ade80; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🔑</div>
+    <h1 id="title">Neues Passwort setzen</h1>
+    <p id="subtitle">Wähle ein neues Passwort für dein Rankify-Konto.</p>
+
+    <form id="form">
+      <div class="group">
+        <input id="pw1" type="password" placeholder="Neues Passwort" autocomplete="new-password" minlength="6" required />
+        <div class="divider"></div>
+        <input id="pw2" type="password" placeholder="Passwort bestätigen" autocomplete="new-password" minlength="6" required />
+      </div>
+      <div id="error" class="msg err hidden"></div>
+      <button id="submit" type="submit">Passwort speichern</button>
+    </form>
+
+    <div id="success" class="hidden">
+      <div class="msg ok">Passwort geändert! Kehre zur Rankify-App zurück und melde dich mit deinem neuen Passwort an.</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+    const SUPABASE_URL = 'https://cvkyvhkwsylmzlrdlbxz.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2a3l2aGt3c3lsbXpscmRsYnh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxNTgzNTQsImV4cCI6MjA3NzczNDM1NH0.EhtSOvNldxWtlYfIhDLffhw__M0VIflnGNLaoC17VTs'
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { detectSessionInUrl: false, persistSession: false, autoRefreshToken: false },
+    })
+
+    const $ = (id) => document.getElementById(id)
+    const showError = (m) => { const e = $('error'); e.textContent = m; e.classList.remove('hidden') }
+    const hideError = () => $('error').classList.add('hidden')
+
+    // Recovery-Token aus dem URL-Fragment (Implicit-Flow) lesen.
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const accessToken = hash.get('access_token')
+    const refreshToken = hash.get('refresh_token')
+    const type = hash.get('type')
+    const linkError = hash.get('error_description') || hash.get('error')
+
+    async function init() {
+      if (linkError) {
+        $('title').textContent = 'Link ungültig'
+        $('subtitle').textContent = 'Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordere in der App einen neuen an.'
+        $('form').classList.add('hidden')
+        return
+      }
+      if (type !== 'recovery' || !accessToken || !refreshToken) {
+        $('title').textContent = 'Kein gültiger Reset-Link'
+        $('subtitle').textContent = 'Öffne den Link aus der Passwort-Vergessen-Mail direkt auf diesem Gerät.'
+        $('form').classList.add('hidden')
+        return
+      }
+      const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      if (error) {
+        $('title').textContent = 'Link abgelaufen'
+        $('subtitle').textContent = 'Bitte fordere in der App einen neuen Reset-Link an.'
+        $('form').classList.add('hidden')
+      }
+    }
+
+    $('form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      hideError()
+      const pw1 = $('pw1').value
+      const pw2 = $('pw2').value
+      if (pw1.length < 6) return showError('Das Passwort muss mindestens 6 Zeichen haben.')
+      if (pw1 !== pw2) return showError('Die Passwörter stimmen nicht überein.')
+
+      $('submit').disabled = true
+      $('submit').textContent = 'Wird gespeichert...'
+      const { error } = await supabase.auth.updateUser({ password: pw1 })
+      if (error) {
+        showError('Konnte nicht gespeichert werden: ' + error.message)
+        $('submit').disabled = false
+        $('submit').textContent = 'Passwort speichern'
+        return
+      }
+      await supabase.auth.signOut()
+      $('form').classList.add('hidden')
+      $('subtitle').classList.add('hidden')
+      $('title').textContent = 'Fertig'
+      $('success').classList.remove('hidden')
+    })
+
+    init()
+  </script>
+</body>
+</html>

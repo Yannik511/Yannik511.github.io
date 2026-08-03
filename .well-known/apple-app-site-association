@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "XGDSZCLSL9.com.rankify.app",
+        "paths": [ "/reset", "/reset/*" ]
+      }
+    ]
+  }
+}
