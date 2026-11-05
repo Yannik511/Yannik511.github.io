@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>E-Mail bestätigt · Rankify</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      background: #0f0f13; color: #fff; padding: 24px; position: relative; overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .glow {
+      position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 420px; height: 420px; pointer-events: none; z-index: 0;
+      background: radial-gradient(circle, rgba(255,126,66,0.18) 0%, transparent 65%);
+    }
+    .card { position: relative; z-index: 1; width: 100%; max-width: 380px; text-align: center; }
+    .logo {
+      width: 74px; height: 74px; border-radius: 20px; margin: 0 auto 18px;
+      display: block; box-shadow: 0 10px 34px rgba(234,144,83,0.45);
+    }
+    h1 { font-size: 25px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.3px; }
+    .sub { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.5); margin: 0 0 28px; }
+    .success-icon {
+      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 8px 26px rgba(34,197,94,0.4);
+    }
+    .foot { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.35); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="card">
+    <img class="logo" src="/icon.png" alt="Rankify" />
+
+    <div id="view-success">
+      <div class="success-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1>E-Mail bestätigt</h1>
+      <p class="sub">Dein Rankify-Konto ist aktiv. Öffne die App und melde dich an.</p>
+    </div>
+
+    <div id="view-invalid" class="hidden">
+      <h1>Link ungültig</h1>
+      <p class="sub">Dieser Link ist abgelaufen oder wurde bereits verwendet. Versuch dich in der Rankify-App anzumelden – ist dein Konto schon bestätigt, klappt das direkt.</p>
+    </div>
+
+    <div class="foot">Rankify · Dein Ranking, deine Regeln</div>
+  </div>
+
+  <script>
+    // Supabase hängt nach der Bestätigung Tokens bzw. einen Fehler an den Hash.
+    // Die Tokens werden hier nicht gebraucht und sofort aus der Adresszeile entfernt.
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    if (hash.get('error') || hash.get('error_description')) {
+      document.getElementById('view-success').classList.add('hidden')
+      document.getElementById('view-invalid').classList.remove('hidden')
+    }
+    history.replaceState(null, '', window.location.pathname)
+  </script>
+</body>
+</html>
